@@ -1,6 +1,6 @@
 import type { LanguageModel, EmbeddingModel } from 'ai';
 
-export type AIProviderName = 'ollama' | 'ai-gateway';
+export type AIProviderName = 'ollama' | 'ai-gateway' | 'openai-compatible';
 
 export interface AIProvider {
   id: AIProviderName;
@@ -26,6 +26,11 @@ export interface AISettings {
   aiGatewayModel?: string;
   aiGatewayCustomModel?: string;
   aiGatewayEmbeddingModel?: string;
+
+  openAICompatibleBaseUrl?: string;
+  openAICompatibleApiKey?: string;
+  openAICompatibleModel?: string;
+  openAICompatibleEmbeddingModel?: string;
 
   spoilerProtection: boolean;
   maxContextChunks: number;

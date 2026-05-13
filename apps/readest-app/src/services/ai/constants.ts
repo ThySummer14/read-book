@@ -30,6 +30,10 @@ export const DEFAULT_AI_SETTINGS: AISettings = {
   aiGatewayModel: 'google/gemini-2.5-flash-lite',
   aiGatewayEmbeddingModel: 'openai/text-embedding-3-small',
 
+  openAICompatibleBaseUrl: 'https://api.openai.com/v1',
+  openAICompatibleModel: 'gpt-5.2',
+  openAICompatibleEmbeddingModel: 'text-embedding-3-small',
+
   spoilerProtection: true,
   maxContextChunks: 10,
   indexingMode: 'on-demand',

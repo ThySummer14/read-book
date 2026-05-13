@@ -99,4 +99,20 @@ describe('AISettings Type', () => {
     expect(settings.provider).toBe('ai-gateway');
     expect(settings.aiGatewayApiKey).toBe('test-key');
   });
+
+  test('should support OpenAI-compatible provider', () => {
+    const settings: AISettings = {
+      ...DEFAULT_AI_SETTINGS,
+      enabled: true,
+      provider: 'openai-compatible',
+      openAICompatibleBaseUrl: 'https://api.example.com/v1',
+      openAICompatibleApiKey: 'test-key',
+      openAICompatibleModel: 'gpt-5.2',
+      openAICompatibleEmbeddingModel: 'text-embedding-3-small',
+    };
+
+    expect(settings.provider).toBe('openai-compatible');
+    expect(settings.openAICompatibleBaseUrl).toBe('https://api.example.com/v1');
+    expect(settings.openAICompatibleApiKey).toBe('test-key');
+  });
 });

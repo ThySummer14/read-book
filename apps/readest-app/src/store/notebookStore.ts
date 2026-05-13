@@ -12,6 +12,7 @@ interface NotebookState {
   notebookNewAnnotation: TextSelection | null;
   notebookEditAnnotation: BookNote | null;
   notebookAnnotationDrafts: { [key: string]: string };
+  pendingAIPrompt: string | null;
   getIsNotebookVisible: () => boolean;
   toggleNotebook: () => void;
   toggleNotebookPin: () => void;
@@ -22,6 +23,7 @@ interface NotebookState {
   setNotebookActiveTab: (tab: NotebookTab) => void;
   setNotebookNewAnnotation: (selection: TextSelection | null) => void;
   setNotebookEditAnnotation: (note: BookNote | null) => void;
+  setPendingAIPrompt: (prompt: string | null) => void;
   saveNotebookAnnotationDraft: (key: string, note: string) => void;
   getNotebookAnnotationDraft: (key: string) => string | undefined;
 }
@@ -34,6 +36,7 @@ export const useNotebookStore = create<NotebookState>((set, get) => ({
   notebookNewAnnotation: null,
   notebookEditAnnotation: null,
   notebookAnnotationDrafts: {},
+  pendingAIPrompt: null,
   getIsNotebookVisible: () => get().isNotebookVisible,
   getNotebookWidth: () => get().notebookWidth,
   setNotebookWidth: (width: string) => set({ notebookWidth: width }),
@@ -45,6 +48,7 @@ export const useNotebookStore = create<NotebookState>((set, get) => ({
   setNotebookNewAnnotation: (selection: TextSelection | null) =>
     set({ notebookNewAnnotation: selection }),
   setNotebookEditAnnotation: (note: BookNote | null) => set({ notebookEditAnnotation: note }),
+  setPendingAIPrompt: (prompt: string | null) => set({ pendingAIPrompt: prompt }),
   saveNotebookAnnotationDraft: (key: string, note: string) =>
     set((state) => ({
       notebookAnnotationDrafts: { ...state.notebookAnnotationDrafts, [key]: note },

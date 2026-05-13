@@ -1,0 +1,404 @@
+.claudian-container {
+  --claudian-border: color-mix(in srgb, currentColor 14%, transparent);
+  --claudian-muted: color-mix(in srgb, currentColor 56%, transparent);
+  font-family: inherit;
+  writing-mode: horizontal-tb;
+}
+
+@keyframes thinking-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.claudian-header {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--claudian-border);
+  padding: 0 10px;
+}
+
+.claudian-title-slot,
+.claudian-header-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.claudian-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.claudian-provider-badge {
+  border: 1px solid var(--claudian-border);
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 11px;
+  opacity: 0.76;
+}
+
+.claudian-icon-button {
+  display: inline-flex;
+  height: 30px;
+  width: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.claudian-icon-button:hover,
+.claudian-tab:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.claudian-tab-strip {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--claudian-border);
+  padding: 6px 8px;
+  scrollbar-width: none;
+}
+
+.claudian-tab {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  opacity: 0.78;
+}
+
+.claudian-tab-active {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  opacity: 1;
+}
+
+.claudian-context-card {
+  margin: 10px;
+  border: 1px solid var(--claudian-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+.claudian-context-title {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.claudian-context-body {
+  min-width: 0;
+  border-top: 1px solid var(--claudian-border);
+  padding: 8px 10px 10px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.claudian-context-counts {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding-top: 8px;
+  font-size: 11px;
+  color: var(--claudian-muted);
+}
+
+.claudian-context-scope {
+  padding-top: 5px;
+  font-size: 11px;
+  color: var(--claudian-muted);
+}
+
+.claudian-warning {
+  margin: 0 10px 10px;
+  border: 1px solid color-mix(in srgb, orange 45%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.claudian-messages {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.claudian-empty {
+  margin: auto;
+  display: flex;
+  max-width: 240px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--claudian-muted);
+}
+
+.claudian-message-row {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  writing-mode: horizontal-tb;
+}
+
+.claudian-message-user {
+  align-items: flex-end;
+}
+
+.claudian-message-assistant {
+  align-items: flex-start;
+}
+
+.claudian-message-role {
+  padding: 0 4px;
+  font-size: 11px;
+  color: var(--claudian-muted);
+}
+
+.claudian-message-bubble {
+  min-width: 0;
+  max-width: 94%;
+  border: 1px solid var(--claudian-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  writing-mode: horizontal-tb;
+}
+
+.claudian-thinking-block {
+  min-width: 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--claudian-border);
+  padding-bottom: 8px;
+}
+
+.claudian-thinking-block summary {
+  display: inline-flex;
+  min-width: 0;
+  cursor: pointer;
+  list-style: none;
+  align-items: center;
+  gap: 5px;
+  color: var(--claudian-muted);
+  font-size: 12px;
+  font-weight: 600;
+  writing-mode: horizontal-tb;
+}
+
+.claudian-thinking-block summary::-webkit-details-marker {
+  display: none;
+}
+
+.claudian-thinking-icon {
+  transition: transform 120ms ease;
+}
+
+.claudian-thinking-block[open] .claudian-thinking-icon {
+  transform: rotate(180deg);
+}
+
+.claudian-thinking-content {
+  margin-top: 7px;
+  color: var(--claudian-muted);
+}
+
+.claudian-tool-text-block {
+  margin: 8px 0;
+  border: 1px solid var(--claudian-border);
+  border-radius: 6px;
+  padding: 7px 8px;
+  color: var(--claudian-muted);
+  font-size: 12px;
+}
+
+.claudian-error-block {
+  margin: 8px 0;
+  border: 1px solid color-mix(in srgb, #ef4444 55%, transparent);
+  border-radius: 6px;
+  padding: 7px 8px;
+  color: color-mix(in srgb, #ef4444 80%, currentColor);
+}
+
+.claudian-interrupted-block {
+  margin-top: 6px;
+  color: color-mix(in srgb, #d45d5d 82%, currentColor);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.claudian-retry-button {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--claudian-border);
+  border-radius: 6px;
+  padding: 4px 7px;
+  color: var(--claudian-muted);
+  font-size: 12px;
+}
+
+.claudian-retry-button:hover {
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  color: inherit;
+}
+
+.claudian-streaming-placeholder {
+  color: var(--claudian-muted);
+  font-size: 12px;
+  font-style: italic;
+  animation: thinking-pulse 1.5s ease-in-out infinite;
+}
+
+.claudian-message-user .claudian-message-bubble {
+  background: color-mix(in srgb, #3b82f6 16%, transparent);
+}
+
+.claudian-markdown p {
+  margin: 0 0 0.65em;
+}
+
+.claudian-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.claudian-markdown h1,
+.claudian-markdown h2,
+.claudian-markdown h3,
+.claudian-markdown h4 {
+  margin: 0.75em 0 0.4em;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.claudian-markdown h1 {
+  font-size: 1.18em;
+}
+
+.claudian-markdown h2 {
+  font-size: 1.1em;
+}
+
+.claudian-markdown h3,
+.claudian-markdown h4 {
+  font-size: 1em;
+}
+
+.claudian-markdown ul,
+.claudian-markdown ol {
+  margin: 0.35em 0 0.7em;
+  padding-inline-start: 1.35em;
+}
+
+.claudian-markdown li {
+  margin: 0.15em 0;
+}
+
+.claudian-markdown blockquote {
+  margin: 0.45em 0 0.75em;
+  border-inline-start: 3px solid color-mix(in srgb, #3b82f6 55%, var(--claudian-border));
+  padding: 0.1em 0 0.1em 0.75em;
+  color: var(--claudian-muted);
+  writing-mode: horizontal-tb;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.claudian-markdown blockquote p {
+  margin: 0.2em 0;
+}
+
+.claudian-markdown code {
+  border-radius: 4px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  padding: 1px 4px;
+  white-space: break-spaces;
+}
+
+.claudian-markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  padding: 8px 10px;
+  white-space: pre;
+}
+
+.claudian-markdown pre code {
+  display: block;
+  min-width: max-content;
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+}
+
+.claudian-input-area {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--claudian-border);
+  padding: 10px;
+}
+
+.claudian-input {
+  min-width: 0;
+  min-height: 72px;
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--claudian-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+.claudian-input:focus {
+  border-color: color-mix(in srgb, #3b82f6 70%, var(--claudian-border));
+}
+
+.claudian-send-button {
+  display: inline-flex;
+  height: 36px;
+  min-width: 36px;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  border-radius: 8px;
+  background: color-mix(in srgb, #3b82f6 22%, transparent);
+}
+
+.claudian-send-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}

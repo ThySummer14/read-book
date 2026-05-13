@@ -24,8 +24,19 @@ vi.mock('ai-sdk-ollama', () => ({
   }),
 }));
 
+// mock @ai-sdk/openai
+vi.mock('@ai-sdk/openai', () => ({
+  createOpenAI: vi.fn(() => {
+    const openAIFn = Object.assign(vi.fn(), {
+      embeddingModel: vi.fn(),
+    });
+    return openAIFn;
+  }),
+}));
+
 import { OllamaProvider } from '@/services/ai/providers/OllamaProvider';
 import { AIGatewayProvider } from '@/services/ai/providers/AIGatewayProvider';
+import { OpenAICompatibleProvider } from '@/services/ai/providers/OpenAICompatibleProvider';
 import { getAIProvider } from '@/services/ai/providers';
 import type { AISettings } from '@/services/ai/types';
 import { DEFAULT_AI_SETTINGS } from '@/services/ai/constants';
@@ -161,6 +172,69 @@ describe('AIGatewayProvider', () => {
   });
 });
 
+describe('OpenAICompatibleProvider', () => {
+  test('should throw if no API key', () => {
+    const settings: AISettings = {
+      ...DEFAULT_AI_SETTINGS,
+      enabled: true,
+      provider: 'openai-compatible',
+    };
+
+    expect(() => new OpenAICompatibleProvider(settings)).toThrow(
+      'API key required for OpenAI-compatible provider',
+    );
+  });
+
+  test('should create provider with API key', () => {
+    const settings: AISettings = {
+      ...DEFAULT_AI_SETTINGS,
+      enabled: true,
+      provider: 'openai-compatible',
+      openAICompatibleApiKey: 'test-key',
+    };
+    const provider = new OpenAICompatibleProvider(settings);
+
+    expect(provider.id).toBe('openai-compatible');
+    expect(provider.name).toBe('OpenAI Compatible');
+    expect(provider.requiresAuth).toBe(true);
+  });
+
+  test('isAvailable should require key and base URL', async () => {
+    const settings: AISettings = {
+      ...DEFAULT_AI_SETTINGS,
+      enabled: true,
+      provider: 'openai-compatible',
+      openAICompatibleApiKey: 'test-key',
+      openAICompatibleBaseUrl: 'https://api.example.com/v1',
+    };
+    const provider = new OpenAICompatibleProvider(settings);
+
+    const result = await provider.isAvailable();
+    expect(result).toBe(true);
+  });
+
+  test('healthCheck should call models endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true });
+    const settings: AISettings = {
+      ...DEFAULT_AI_SETTINGS,
+      enabled: true,
+      provider: 'openai-compatible',
+      openAICompatibleApiKey: 'test-key',
+      openAICompatibleBaseUrl: 'https://api.example.com/v1',
+    };
+    const provider = new OpenAICompatibleProvider(settings);
+
+    const result = await provider.healthCheck();
+    expect(result).toBe(true);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.example.com/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-key' },
+      }),
+    );
+  });
+});
+
 describe('getAIProvider', () => {
   test('should return OllamaProvider for ollama', () => {
     const settings: AISettings = { ...DEFAULT_AI_SETTINGS, enabled: true, provider: 'ollama' };
@@ -179,6 +253,18 @@ describe('getAIProvider', () => {
     const provider = getAIProvider(settings);
 
     expect(provider.id).toBe('ai-gateway');
+  });
+
+  test('should return OpenAICompatibleProvider for openai-compatible', () => {
+    const settings: AISettings = {
+      ...DEFAULT_AI_SETTINGS,
+      enabled: true,
+      provider: 'openai-compatible',
+      openAICompatibleApiKey: 'test-key',
+    };
+    const provider = getAIProvider(settings);
+
+    expect(provider.id).toBe('openai-compatible');
   });
 
   test('should throw for unknown provider', () => {

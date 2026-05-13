@@ -24,6 +24,7 @@ import {
   DEFAULT_VIEW_SETTINGS_CONFIG,
 } from './constants';
 import { DEFAULT_AI_SETTINGS } from './ai/constants';
+import { normalizeClaudianSettings } from '@/features/claudian/ported/core/defaultSettings';
 import { getTargetLang, isCJKEnv } from '@/utils/misc';
 import { safeLoadJSON, safeSaveJSON } from './persistence';
 
@@ -145,6 +146,7 @@ export async function loadSettings(ctx: Context): Promise<SystemSettings> {
     ...DEFAULT_AI_SETTINGS,
     ...settings.aiSettings,
   };
+  settings.claudianSettings = normalizeClaudianSettings(settings.claudianSettings);
 
   settings.localBooksDir = await ctx.fs.getPrefix('Books');
 

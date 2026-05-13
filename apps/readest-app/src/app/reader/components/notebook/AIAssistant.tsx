@@ -5,6 +5,7 @@ import {
   AssistantRuntimeProvider,
   useLocalRuntime,
   useAssistantRuntime,
+  useAssistantApi,
   type ThreadMessage,
   type ThreadHistoryAdapter,
 } from '@assistant-ui/react';
@@ -14,6 +15,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useBookDataStore } from '@/store/bookDataStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useAIChatStore } from '@/store/aiChatStore';
+import { useNotebookStore } from '@/store/notebookStore';
 import {
   indexBook,
   isBookIndexed,
@@ -206,6 +208,8 @@ const ThreadWrapper = ({
   const [sources, setSources] = useState(getLastSources());
   const assistantRuntime = useAssistantRuntime();
   const { setActiveConversation } = useAIChatStore();
+  const { pendingAIPrompt, setPendingAIPrompt } = useNotebookStore();
+  const assistantApi = useAssistantApi();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -220,6 +224,12 @@ const ThreadWrapper = ({
     setActiveConversation(null);
     assistantRuntime.switchToNewThread();
   }, [assistantRuntime, setActiveConversation]);
+
+  useEffect(() => {
+    if (!pendingAIPrompt) return;
+    assistantApi.composer().setText(pendingAIPrompt);
+    setPendingAIPrompt(null);
+  }, [assistantApi, pendingAIPrompt, setPendingAIPrompt]);
 
   return (
     <Thread

@@ -7,6 +7,8 @@ import { BsTranslate } from 'react-icons/bs';
 import { TbHexagonLetterD } from 'react-icons/tb';
 import { FaHeadphones } from 'react-icons/fa6';
 import { IoIosBuild } from 'react-icons/io';
+import { PiRobot } from 'react-icons/pi';
+import { LuBookOpenText, LuListChecks, LuNetwork } from 'react-icons/lu';
 import { AnnotationToolType } from '@/types/annotator';
 import { stubTranslation as _ } from '@/utils/misc';
 
@@ -75,6 +77,30 @@ export const annotationToolButtons = createAnnotationToolButtons([
     tooltip: _('Translate text after selection'),
     Icon: BsTranslate,
     quickAction: true,
+  },
+  {
+    type: 'ai-explain',
+    label: _('Explain'),
+    tooltip: _('Ask AI to explain this selection'),
+    Icon: PiRobot,
+  },
+  {
+    type: 'ai-summarize',
+    label: _('Summarize'),
+    tooltip: _('Ask AI to summarize this selection'),
+    Icon: LuBookOpenText,
+  },
+  {
+    type: 'ai-questions',
+    label: _('Questions'),
+    tooltip: _('Ask AI to turn this selection into study questions'),
+    Icon: LuListChecks,
+  },
+  {
+    type: 'ai-connect-notes',
+    label: _('Connect'),
+    tooltip: _('Ask AI to connect this selection to your notes'),
+    Icon: LuNetwork,
   },
   {
     type: 'tts',

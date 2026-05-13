@@ -5,7 +5,7 @@ import { useAIChatStore } from '@/store/aiChatStore';
 // Hook to open the Notebook panel with the AI tab and optionally load a specific conversation
 
 export function useOpenAIInNotebook() {
-  const { setNotebookVisible, setNotebookActiveTab } = useNotebookStore();
+  const { setNotebookVisible, setNotebookActiveTab, setPendingAIPrompt } = useNotebookStore();
   const { setActiveConversation, createConversation } = useAIChatStore();
 
   const openAIInNotebook = useCallback(
@@ -13,6 +13,7 @@ export function useOpenAIInNotebook() {
       conversationId?: string;
       bookHash?: string;
       newConversationTitle?: string;
+      prompt?: string;
     }) => {
       // Open notebook and switch to AI tab
       setNotebookVisible(true);
@@ -25,8 +26,18 @@ export function useOpenAIInNotebook() {
         // Create new conversation
         await createConversation(options.bookHash, options.newConversationTitle);
       }
+
+      if (options?.prompt) {
+        setPendingAIPrompt(options.prompt);
+      }
     },
-    [setNotebookVisible, setNotebookActiveTab, setActiveConversation, createConversation],
+    [
+      setNotebookVisible,
+      setNotebookActiveTab,
+      setPendingAIPrompt,
+      setActiveConversation,
+      createConversation,
+    ],
   );
 
   const closeAIInNotebook = useCallback(() => {

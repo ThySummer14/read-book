@@ -49,6 +49,8 @@ import useShortcuts from '@/hooks/useShortcuts';
 import ProofreadPopup from './ProofreadPopup';
 import { setProofreadRulesVisibility } from '@/app/reader/components/ProofreadRules';
 import ExportMarkdownDialog from './ExportMarkdownDialog';
+import useOpenAIInNotebook from '../../hooks/useOpenAIInNotebook';
+import { buildSelectionAIPrompt, type AISelectionPromptAction } from '@/services/ai/prompts';
 
 const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   const _ = useTranslation();
@@ -61,6 +63,7 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   const { setNotebookVisible, setNotebookNewAnnotation } = useNotebookStore();
   const { listenToNativeTouchEvents } = useDeviceControlStore();
   const { loadCustomDictionaries } = useCustomDictionaryStore();
+  const { openAIInNotebook } = useOpenAIInNotebook();
 
   useNotesSync(bookKey);
   useReadwiseSync(bookKey);
@@ -132,7 +135,7 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   const transPopupHeight = Math.min(265, maxHeight);
   const proofreadPopupWidth = Math.min(440, maxWidth);
   const proofreadPopupHeight = Math.min(200, maxHeight);
-  const annotPopupWidth = Math.min(useResponsiveSize(300), maxWidth);
+  const annotPopupWidth = Math.min(useResponsiveSize(360), maxWidth);
   const annotPopupHeight = useResponsiveSize(44);
   const androidSelectionHandlerHeight = 0;
 
@@ -376,7 +379,11 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
       const node = range.startContainer;
       const el = node.nodeType === 1 ? node : node.parentElement;
       const { writingMode } = defaultView.getComputedStyle(el);
-      draw(Overlayer.bubble, { writingMode });
+      draw(Overlayer.bubble, {
+        writingMode,
+        hitSize: appService?.isMobile ? 44 : 32,
+        ariaLabel: _('View annotation'),
+      });
     } else if (style === 'highlight') {
       draw(Overlayer.highlight, {
         color: isBwEink ? einkBgColor : hexColor,
@@ -784,6 +791,27 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
     setShowDeepLPopup(true);
   };
 
+  const handleSelectionAI = async (action: AISelectionPromptAction) => {
+    if (!selection || !selection.text) return;
+    const bookHash = bookKey.split('-')[0] || '';
+    const bookTitle = bookData.book?.title || _('this book');
+    const { booknotes = [] } = config;
+    const { prompt, conversationTitle } = buildSelectionAIPrompt({
+      action,
+      bookTitle,
+      selectionText: selection.text,
+      page: selection.page,
+      notes: booknotes,
+    });
+
+    handleDismissPopupAndSelection();
+    await openAIInNotebook({
+      bookHash,
+      newConversationTitle: conversationTitle,
+      prompt,
+    });
+  };
+
   const handleSpeakText = async (oneTime = false) => {
     if (!selection || !selection.text) return;
     setShowAnnotPopup(false);
@@ -928,41 +956,70 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   };
 
   const selectionAnnotated = selection?.annotated;
-  const toolButtons = annotationToolButtons.map(({ type, label, Icon }) => {
+  const toolButtons = annotationToolButtons.map(({ type, label, tooltip, Icon }) => {
+    const tooltipText = _(tooltip || label);
     switch (type) {
       case 'copy':
-        return { tooltipText: _(label), Icon, onClick: handleCopy };
+        return { tooltipText, Icon, onClick: handleCopy };
       case 'highlight':
         return {
-          tooltipText: selectionAnnotated ? _('Delete Highlight') : _(label),
+          tooltipText: selectionAnnotated ? _('Delete Highlight') : tooltipText,
           Icon: selectionAnnotated ? RiDeleteBinLine : Icon,
           onClick: handleHighlight,
         };
       case 'annotate':
         return {
-          tooltipText: _(label),
+          tooltipText,
           Icon,
           onClick: handleAnnotate,
         };
       case 'search':
         return {
-          tooltipText: _(label),
+          tooltipText,
           Icon,
           onClick: handleSearch,
         };
       case 'dictionary':
-        return { tooltipText: _(label), Icon, onClick: handleDictionary };
+        return { tooltipText, Icon, onClick: handleDictionary };
       case 'translate':
-        return { tooltipText: _(label), Icon, onClick: handleTranslation };
+        return { tooltipText, Icon, onClick: handleTranslation };
+      case 'ai-explain':
+        return {
+          tooltipText,
+          Icon,
+          onClick: () => handleSelectionAI('explain'),
+          disabled: !settings?.aiSettings?.enabled,
+        };
+      case 'ai-summarize':
+        return {
+          tooltipText,
+          Icon,
+          onClick: () => handleSelectionAI('summarize'),
+          disabled: !settings?.aiSettings?.enabled,
+        };
+      case 'ai-questions':
+        return {
+          tooltipText,
+          Icon,
+          onClick: () => handleSelectionAI('questions'),
+          disabled: !settings?.aiSettings?.enabled,
+        };
+      case 'ai-connect-notes':
+        return {
+          tooltipText,
+          Icon,
+          onClick: () => handleSelectionAI('connect-notes'),
+          disabled: !settings?.aiSettings?.enabled,
+        };
       case 'tts':
         return {
-          tooltipText: _(label),
+          tooltipText,
           Icon,
           onClick: handleSpeakText,
         };
       case 'proofread':
         return {
-          tooltipText: _(label),
+          tooltipText,
           Icon,
           onClick: handleProofread,
           disabled: bookData.book?.format !== 'EPUB',

@@ -187,6 +187,16 @@
           "name": "launch-appimage",
           "cmd": "setsid",
           "args": [{ "validator": "^.*Readest(.*)\\.AppImage$" }]
+        },
+        {
+          "name": "claudian-codex",
+          "cmd": "env",
+          "args": [
+            { "validator": "^([A-Za-z0-9_./ -]*\\/)?codex$" },
+            "app-server",
+            "--listen",
+            "ws://127.0.0.1:0"
+          ]
         }
       ]
     },
