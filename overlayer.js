@@ -2,6 +2,22 @@ const createSVGElement = tag =>
     document.createElementNS('http://www.w3.org/2000/svg', tag)
 
 let overlayerCounter = 0
+const hitRectsKey = '__foliateHitRects'
+const hoverHandlerKey = '__foliateSetHover'
+
+const copyRect = ({ left, top, right, bottom, width, height }) => ({
+    left,
+    top,
+    right,
+    bottom,
+    width: width ?? right - left,
+    height: height ?? bottom - top,
+})
+
+const getElementHitRects = element =>
+    Array.isArray(element?.[hitRectsKey])
+        ? element[hitRectsKey].map(copyRect)
+        : null
 
 export class Overlayer {
     #svg = createSVGElement('svg')
@@ -10,6 +26,7 @@ export class Overlayer {
     #clipPath = null
     #clipPathPath = null
     #clipPathId
+    #hoveredKey = null
 
     constructor(doc) {
         this.#doc = doc
@@ -112,15 +129,17 @@ export class Overlayer {
         })
         const element = draw(rects, options)
         this.#svg.append(element)
-        this.#map.set(key, { range, draw, options, element, rects })
+        const hitRects = getElementHitRects(element)
+        this.#map.set(key, { range, draw, options, element, rects, hitRects })
     }
     remove(key) {
         if (!this.#map.has(key)) return
+        if (this.#hoveredKey === key) this.#hoveredKey = null
         this.#svg.removeChild(this.#map.get(key).element)
         this.#map.delete(key)
     }
     redraw() {
-        for (const obj of this.#map.values()) {
+        for (const [key, obj] of this.#map.entries()) {
             const { range, draw, options, element } = obj
             this.#svg.removeChild(element)
             const zoom = this.#zoom
@@ -140,14 +159,55 @@ export class Overlayer {
             this.#svg.append(el)
             obj.element = el
             obj.rects = rects
+            obj.hitRects = getElementHitRects(el)
+            if (this.#hoveredKey === key) {
+                el[hoverHandlerKey]?.(true)
+            }
+        }
+    }
+    setHover(key) {
+        if (this.#hoveredKey === key) return
+        if (this.#hoveredKey && this.#map.has(this.#hoveredKey)) {
+            this.#map.get(this.#hoveredKey).element?.[hoverHandlerKey]?.(false)
+        }
+        this.#hoveredKey = key
+        if (key && this.#map.has(key)) {
+            this.#map.get(key).element?.[hoverHandlerKey]?.(true)
         }
     }
     hitTest({ x, y }) {
         const arr = Array.from(this.#map.entries())
+        const hitRectMatches = []
+        for (let i = arr.length - 1; i >= 0; i--) {
+            const [key, obj] = arr[i]
+            if (!obj.hitRects?.length) continue
+            for (const rect of obj.hitRects) {
+                const { left, top, right, bottom, width, height } = rect
+                if (top <= y && left <= x && bottom > y && right > x) {
+                    const cx = left + width / 2
+                    const cy = top + height / 2
+                    hitRectMatches.push({
+                        key,
+                        obj,
+                        rect,
+                        order: i,
+                        distance: ((x - cx) ** 2) / (width ** 2 || 1)
+                            + ((y - cy) ** 2) / (height ** 2 || 1),
+                    })
+                }
+            }
+        }
+        if (hitRectMatches.length) {
+            hitRectMatches.sort((a, b) => a.distance - b.distance || b.order - a.order)
+            const { key, obj, rect } = hitRectMatches[0]
+            return [key, obj.range, rect]
+        }
+
         // loop in reverse to hit more recently added items first
         for (let i = arr.length - 1; i >= 0; i--) {
             const tolerance = 5
             const [key, obj] = arr[i]
+            if (obj.hitRects?.length) continue
             for (const { left, top, right, bottom } of obj.rects) {
                 if (
                     top <= y + tolerance &&
@@ -327,20 +387,57 @@ export class Overlayer {
         return g
     }
     static bubble(rects, options = {}) {
-        const { color = '#fbbf24', writingMode, opacity = 0.85, size = 20, padding = 10 } = options
+        const {
+            color = '#fbbf24',
+            writingMode,
+            opacity = 0.85,
+            size = 20,
+            padding = 10,
+            hitSize,
+            includeRangeHit = false,
+            ariaLabel = 'View annotation',
+        } = options
         const isVertical = writingMode === 'vertical-rl' || writingMode === 'vertical-lr'
         const g = createSVGElement('g')
         g.style.opacity = opacity
+        g.style.cursor = 'pointer'
+        g.setAttribute('class', 'foliate-note-bubble')
+        g.setAttribute('role', 'button')
+        g.setAttribute('tabindex', '0')
+        g.setAttribute('aria-label', ariaLabel)
         if (rects.length === 0) return g
-        rects.splice(1)
         const firstRect = rects[0]
         const x = isVertical ? firstRect.right - size + padding : firstRect.right - size + padding
         const y = isVertical ? firstRect.bottom - size + padding : firstRect.top - size + padding
-        firstRect.top = y - padding
-        firstRect.right = x + size + padding
-        firstRect.bottom = y + size + padding
-        firstRect.left = x - padding
+        const minimumHitSize = Math.max(hitSize ?? size + padding * 2, size)
+        const hitLeft = x + size / 2 - minimumHitSize / 2
+        const hitTop = y + size / 2 - minimumHitSize / 2
+        const hitRect = {
+            left: hitLeft,
+            top: hitTop,
+            right: hitLeft + minimumHitSize,
+            bottom: hitTop + minimumHitSize,
+            width: minimumHitSize,
+            height: minimumHitSize,
+        }
+        g[hitRectsKey] = includeRangeHit
+            ? [hitRect, ...rects.map(copyRect)]
+            : [hitRect]
+
+        const title = createSVGElement('title')
+        title.textContent = ariaLabel
+        const hitArea = createSVGElement('rect')
+        hitArea.setAttribute('class', 'foliate-note-bubble-hit-area')
+        hitArea.setAttribute('x', hitRect.left)
+        hitArea.setAttribute('y', hitRect.top)
+        hitArea.setAttribute('width', hitRect.width)
+        hitArea.setAttribute('height', hitRect.height)
+        hitArea.setAttribute('rx', Math.min(10, minimumHitSize / 4))
+        hitArea.setAttribute('fill', 'transparent')
+        hitArea.setAttribute('pointer-events', 'all')
+
         const bubble = createSVGElement('path')
+        bubble.setAttribute('class', 'foliate-note-bubble-shape')
         const s = size
         const r = s * 0.15
         // Speech bubble shape with a small tail
@@ -399,6 +496,14 @@ export class Overlayer {
             lineGroup.setAttribute('transform', `rotate(90 ${centerX} ${centerY})`)
         }
 
+        g[hoverHandlerKey] = active => {
+            g.style.filter = active ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28))' : ''
+            bubble.setAttribute('stroke', active ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.2)')
+            bubble.setAttribute('stroke-width', active ? '1.5' : '1')
+        }
+
+        g.append(title)
+        g.append(hitArea)
         g.append(bubble)
         g.append(lineGroup)
         return g
@@ -419,4 +524,3 @@ export class Overlayer {
         return image
     }
 }
-

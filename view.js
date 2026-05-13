@@ -456,9 +456,15 @@ export class View extends HTMLElement {
             const [value] = overlayer.hitTest(e)
             if (value && !value.startsWith(SEARCH_PREFIX)) {
                 doc.body.style.cursor = 'pointer'
+                overlayer.setHover(value)
             } else {
                 doc.body.style.cursor = ''
+                overlayer.setHover(null)
             }
+        })
+        doc.addEventListener('mouseleave', () => {
+            doc.body.style.cursor = ''
+            overlayer.setHover(null)
         })
 
         const list = this.#searchResults.get(index)
